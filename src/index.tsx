@@ -13,7 +13,7 @@ type ContextLike = Omit<React.Context<unknown>, 'Provider'> & { Provider: unknow
  * @returns A new React component that receives the same props as the original component,
  * except the props returned by the selector argument.
  */
-export function withContext<
+export function withContextSelector<
   Context extends ContextLike,
   SelectedProps extends Record<string, unknown>,
   ComponentProps extends SelectedProps
@@ -37,7 +37,7 @@ export function withContext<
  * @returns A new React component that receives the same props as the original component,
  * except the props returned by the selector argument.
  */
-export function withContext<
+export function withContextSelector<
   Contexts extends readonly ContextLike[],
   SelectedProps extends Record<string, unknown>,
   ComponentProps extends SelectedProps
@@ -49,7 +49,7 @@ export function withContext<
   props: Exact<RestProps, Omit<ComponentProps, keyof SelectedProps>>
 ) => JSX.Element
 
-export function withContext<
+export function withContextSelector<
   ContextValue,
   SelectedProps extends Record<string, unknown>,
   ComponentProps extends SelectedProps
@@ -61,19 +61,19 @@ export function withContext<
   const Wrapped = memo(Component)
   const contexts = [context].flat()
 
-  function WithContext<RestProps extends Omit<ComponentProps, keyof SelectedProps>>(
+  function WithContextSelector<RestProps extends Omit<ComponentProps, keyof SelectedProps>>(
     props: Exact<RestProps, Omit<ComponentProps, keyof SelectedProps>>
   ): JSX.Element
 
-  function WithContext(props: ComponentProps) {
+  function WithContextSelector(props: ComponentProps) {
     return <Wrapped {...{ ...selector(...contexts.map(React.useContext)), ...props }} />
   }
 
-  WithContext.displayName = `WithContext([${contexts
+  WithContextSelector.displayName = `WithContextSelector([${contexts
     .map(({ displayName }) => displayName || 'Context')
     .join()}], ${Component.displayName || Component.name || 'Component'})`
 
-  return WithContext
+  return WithContextSelector
 }
 
 const memo: <T>(c: T) => T = React.memo

@@ -22,7 +22,7 @@ npm i with-context-selector
 Singular context selector:
 
 ```ts
-import { withContext } from 'with-context-selector'
+import { withContextSelector } from 'with-context-selector'
 
 const foo = { x: 1, y: 2 }
 const FooContext = React.createContext(foo)
@@ -31,10 +31,10 @@ const FooContext = React.createContext(foo)
 FooContext.displayName = 'FooContext'
 
 // ConnectedFoo rerenders only when x prop changes
-const ConnectedFoo = withContext(
+const ConnectedFoo = withContextSelector(
   FooContext,
   ({ x, y }) => ({ x }),
-  function Foo({ x, z }: { x: number, z: number }) {
+  function Foo({ x, z }: { x: number; z: number }) {
     return <div>{x + z}</div>
   }
 )
@@ -50,14 +50,14 @@ const App = (
 Multiple context selector:
 
 ```ts
-import { withContext } from 'with-context-selector'
+import { withContextSelector } from 'with-context-selector'
 
 const foo = { x: 1, y: 2 }
 const bar = 'bar'
 const FooContext = React.createContext(foo)
 const BarContext = React.createContext(bar)
 
-const ConnectedFooBar = withContext(
+const ConnectedFooBar = withContextSelector(
   [FooContext, BarContext],
   (foo, bar) => ({ foo: foo.x, bar }),
   function FooBar({ foo, bar }: { foo: number, bar: string }) {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, createContext } from 'react'
 import { render, cleanup, waitFor } from '@testing-library/react'
 import { assertDefined, isDefined } from 'ts-is-defined'
-import { withContext } from '../src'
+import { withContextSelector } from '../src'
 
 function id<T>(x: T) {
   return x
@@ -43,7 +43,7 @@ const createFooView = (
   injectSelector: (value: Foo) => void,
   injectRender: (props: FooProps) => void
 ) =>
-  withContext(
+  withContextSelector(
     FooContext,
     (value) => {
       assertDefined(value, 'Foo is outside FooProvider!')
@@ -144,7 +144,7 @@ describe('with-context', () => {
   })
 
   test('should handle array of contexts', async () => {
-    const View = withContext(
+    const View = withContextSelector(
       [FooContext, BarContext],
       (fooValue, barValue) => {
         assertDefined(fooValue, 'Foo is outside FooProvider!')
