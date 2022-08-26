@@ -30,10 +30,10 @@ const FooContext = React.createContext(foo)
 // context can have a displayName
 FooContext.displayName = 'FooContext'
 
-// ConnectedFoo rerenders only when x prop changes
 const ConnectedFoo = withContextSelector(
   FooContext,
   ({ x, y }) => ({ x }),
+  // Foo rerenders only when x prop changes
   function Foo({ x, z }: { x: number; z: number }) {
     return <div>{x + z}</div>
   }
