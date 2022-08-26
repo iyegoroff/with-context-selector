@@ -28,12 +28,8 @@
   },
   "keywords": [
     "react",
-    "hook",
-    "reducer",
-    "effect",
-    "useReducer",
-    "useEffect",
-    "elmish"
+    "context",
+    "selector"
   ],
   "files": [
     "dist",

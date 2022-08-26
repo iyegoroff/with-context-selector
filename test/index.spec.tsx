@@ -208,9 +208,9 @@ describe('with-context', () => {
     })
   })
 
-  test('displayName should be WithContext([FooContext], FooView)', () => {
+  test('displayName should be WithContextSelector([FooContext], FooView)', () => {
     const FooView = { displayName: undefined, ...createFooView(id, id) }
 
-    expect(FooView.displayName).toEqual('WithContext([FooContext], FooView)')
+    expect(FooView.displayName).toEqual('WithContextSelector([FooContext], FooView)')
   })
 })
