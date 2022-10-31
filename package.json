@@ -34,8 +34,7 @@
   "files": [
     "dist",
     "src",
-    "test",
-    "src"
+    "test"
   ],
   "author": "iyegoroff <iegoroff@gmail.com>",
   "license": "MIT",
