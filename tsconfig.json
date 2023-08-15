@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
+    "declaration": true,
     "sourceMap": true,
     "target": "ES2018",
     "lib": ["ES2019.Array", "es2018", "DOM"],
     "strict": true,
     "jsx": "react",
     "moduleResolution": "node",
-    "removeComments": true,
     "noEmitOnError": true,
     "esModuleInterop": true,
     "noUnusedLocals": true,
