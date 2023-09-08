@@ -59,7 +59,7 @@ const createFooView = (
   return {
     FooView: withContextSelector(
       FooContext,
-      (value) => {
+      () => (value) => {
         assertDefined(value, 'Foo is outside FooProvider!')
 
         injectSelector(value)
@@ -70,7 +70,7 @@ const createFooView = (
     ),
     DefinedFooView: withDefinedContextSelector(
       FooContext,
-      (value) => {
+      () => (value) => {
         injectSelector(value)
 
         return { x: value.x }
@@ -172,7 +172,7 @@ describe('withContextSelector', () => {
   test('should handle array of contexts', async () => {
     const View = withContextSelector(
       [FooContext, BarContext],
-      (fooValue, barValue) => {
+      () => (fooValue, barValue) => {
         assertDefined(fooValue, 'Foo is outside FooProvider!')
         assertDefined(barValue, 'Bar is outside BarProvider!')
 
@@ -202,6 +202,78 @@ describe('withContextSelector', () => {
     await waitFor(() => {
       expect(foo.textContent).toEqual('1')
       expect(bar.textContent).toEqual('10')
+    })
+  })
+
+  test('should pass extra prop to component', async () => {
+    const View = withContextSelector(
+      FooContext,
+      ({ bar }: { bar: number }) =>
+        (fooValue) => {
+          assertDefined(fooValue, 'Foo is outside FooProvider!')
+
+          return { foo: fooValue.x, bar }
+        },
+      ({ foo, bar }: { foo: number; bar: number }) => (
+        <>
+          <div data-testid='foo'>{foo}</div>
+          <div data-testid='bar'>{bar}</div>
+        </>
+      )
+    )
+
+    const App = () => (
+      <FooProvider updateFoo={id}>
+        <BarProvider>
+          <View bar={5} />
+        </BarProvider>
+      </FooProvider>
+    )
+
+    const { getByTestId } = render(<App />)
+
+    const foo = getByTestId('foo')
+    const bar = getByTestId('bar')
+
+    await waitFor(() => {
+      expect(foo.textContent).toEqual('1')
+      expect(bar.textContent).toEqual('5')
+    })
+  })
+
+  test('should override extra prop in selector', async () => {
+    const View = withContextSelector(
+      FooContext,
+      ({ bar }: { bar: number }) =>
+        (fooValue) => {
+          assertDefined(fooValue, 'Foo is outside FooProvider!')
+
+          return { foo: fooValue.x, bar: bar + 1 }
+        },
+      ({ foo, bar }: { foo: number; bar: number }) => (
+        <>
+          <div data-testid='foo'>{foo}</div>
+          <div data-testid='bar'>{bar}</div>
+        </>
+      )
+    )
+
+    const App = () => (
+      <FooProvider updateFoo={id}>
+        <BarProvider>
+          <View bar={5} />
+        </BarProvider>
+      </FooProvider>
+    )
+
+    const { getByTestId } = render(<App />)
+
+    const foo = getByTestId('foo')
+    const bar = getByTestId('bar')
+
+    await waitFor(() => {
+      expect(foo.textContent).toEqual('1')
+      expect(bar.textContent).toEqual('6')
     })
   })
 
@@ -276,7 +348,7 @@ describe('withDefinedContextSelector', () => {
   test('should handle array of contexts', async () => {
     const View = withDefinedContextSelector(
       [FooContext, BarContext],
-      (fooValue, barValue) => ({ foo: fooValue.x, bar: barValue }),
+      () => (fooValue, barValue) => ({ foo: fooValue.x, bar: barValue }),
       ({ foo, bar }: { foo: number; bar: number }) => (
         <>
           <div data-testid='foo'>{foo}</div>
@@ -301,6 +373,70 @@ describe('withDefinedContextSelector', () => {
     await waitFor(() => {
       expect(foo.textContent).toEqual('1')
       expect(bar.textContent).toEqual('10')
+    })
+  })
+
+  test('should pass extra prop to component', async () => {
+    const View = withDefinedContextSelector(
+      [FooContext],
+      ({ bar }: { bar: number }) =>
+        (fooValue) => ({ foo: fooValue.x, bar }),
+      ({ foo, bar }: { foo: number; bar: number }) => (
+        <>
+          <div data-testid='foo'>{foo}</div>
+          <div data-testid='bar'>{bar}</div>
+        </>
+      )
+    )
+
+    const App = () => (
+      <FooProvider updateFoo={id}>
+        <BarProvider>
+          <View bar={5} />
+        </BarProvider>
+      </FooProvider>
+    )
+
+    const { getByTestId } = render(<App />)
+
+    const foo = getByTestId('foo')
+    const bar = getByTestId('bar')
+
+    await waitFor(() => {
+      expect(foo.textContent).toEqual('1')
+      expect(bar.textContent).toEqual('5')
+    })
+  })
+
+  test('should override extra prop in selector', async () => {
+    const View = withDefinedContextSelector(
+      [FooContext],
+      ({ bar }: { bar: number }) =>
+        (fooValue) => ({ foo: fooValue.x, bar: bar + 1 }),
+      ({ foo, bar }: { foo: number; bar: number }) => (
+        <>
+          <div data-testid='foo'>{foo}</div>
+          <div data-testid='bar'>{bar}</div>
+        </>
+      )
+    )
+
+    const App = () => (
+      <FooProvider updateFoo={id}>
+        <BarProvider>
+          <View bar={5} />
+        </BarProvider>
+      </FooProvider>
+    )
+
+    const { getByTestId } = render(<App />)
+
+    const foo = getByTestId('foo')
+    const bar = getByTestId('bar')
+
+    await waitFor(() => {
+      expect(foo.textContent).toEqual('1')
+      expect(bar.textContent).toEqual('6')
     })
   })
 })

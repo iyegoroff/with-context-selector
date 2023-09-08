@@ -19,16 +19,17 @@ type ContextLike = Omit<React.Context<unknown>, 'Provider'> & { Provider: unknow
 export function withContextSelector<
   Context extends ContextLike,
   SelectedProps extends Record<string, unknown>,
+  ExtraProps extends Record<string, unknown>,
   ComponentProps extends SelectedProps
 >(
   context: Context,
   selector: (
+    extra: ExtraProps
+  ) => (
     contextValue: DeepReadonly<Context extends React.Context<infer First> ? First : never>
   ) => SelectedProps,
   Component: React.ComponentType<ComponentProps>
-): <RestProps extends Omit<ComponentProps, keyof SelectedProps>>(
-  props: Exact<RestProps, Omit<ComponentProps, keyof SelectedProps>>
-) => JSX.Element
+): (props: ExtraProps & Omit<ComponentProps, keyof SelectedProps>) => JSX.Element
 
 /**
  * Creates multiple context selector.
@@ -43,33 +44,37 @@ export function withContextSelector<
 export function withContextSelector<
   Contexts extends readonly ContextLike[],
   SelectedProps extends Record<string, unknown>,
+  ExtraProps extends Record<string, unknown>,
   ComponentProps extends SelectedProps
 >(
   contexts: Narrow<Contexts>,
-  selector: (...contextValues: DeepReadonly<ContextValues<Contexts>>) => SelectedProps,
+  selector: (
+    extra: ExtraProps
+  ) => (...contextValues: DeepReadonly<ContextValues<Contexts>>) => SelectedProps,
   Component: React.ComponentType<ComponentProps>
-): <RestProps extends Omit<ComponentProps, keyof SelectedProps>>(
-  props: Exact<RestProps, Omit<ComponentProps, keyof SelectedProps>>
-) => JSX.Element
+): (props: ExtraProps & Omit<ComponentProps, keyof SelectedProps>) => JSX.Element
 
 export function withContextSelector<
   ContextValue,
   SelectedProps extends Record<string, unknown>,
+  ExtraProps extends Record<string, unknown>,
   ComponentProps extends SelectedProps
 >(
   context: readonly React.Context<ContextValue>[],
-  selector: (...contextValues: ContextValue[]) => SelectedProps,
+  selector: (extra: ExtraProps) => (...contextValues: ContextValue[]) => SelectedProps,
   Component: React.ComponentType<ComponentProps>
 ) {
   const Wrapped = memo(Component)
   const contexts = [context].flat()
 
   function WithContextSelector<
-    RestProps extends Omit<ComponentProps, keyof SelectedProps>
-  >(props: Exact<RestProps, Omit<ComponentProps, keyof SelectedProps>>): JSX.Element
+    RestProps extends ExtraProps & Omit<ComponentProps, keyof SelectedProps>
+  >(props: RestProps): JSX.Element
 
-  function WithContextSelector(props: ComponentProps) {
-    return <Wrapped {...{ ...selector(...contexts.map(React.useContext)), ...props }} />
+  function WithContextSelector(props: ComponentProps & ExtraProps) {
+    return (
+      <Wrapped {...{ ...props, ...selector(props)(...contexts.map(React.useContext)) }} />
+    )
   }
 
   WithContextSelector.displayName = `WithContextSelector([${contexts
@@ -93,18 +98,19 @@ export function withContextSelector<
 export function withDefinedContextSelector<
   Context extends ContextLike,
   SelectedProps extends Record<string, unknown>,
+  ExtraProps extends Record<string, unknown>,
   ComponentProps extends SelectedProps
 >(
   context: Context,
   selector: (
+    extra: ExtraProps
+  ) => (
     contextValue: DeepReadonly<
       Context extends React.Context<infer First> ? NonNullable<First> : never
     >
   ) => SelectedProps,
   Component: React.ComponentType<ComponentProps>
-): <RestProps extends Omit<ComponentProps, keyof SelectedProps>>(
-  props: Exact<RestProps, Omit<ComponentProps, keyof SelectedProps>>
-) => JSX.Element
+): (props: ExtraProps & Omit<ComponentProps, keyof SelectedProps>) => JSX.Element
 
 /**
  * Creates multiple context selector.
@@ -120,47 +126,55 @@ export function withDefinedContextSelector<
 export function withDefinedContextSelector<
   Contexts extends readonly ContextLike[],
   SelectedProps extends Record<string, unknown>,
+  ExtraProps extends Record<string, unknown>,
   ComponentProps extends SelectedProps
 >(
   contexts: Narrow<Contexts>,
   selector: (
+    extra: ExtraProps
+  ) => (
     ...contextValues: NonNullables<DeepReadonly<ContextValues<Contexts>>>
   ) => SelectedProps,
   Component: React.ComponentType<ComponentProps>
-): <RestProps extends Omit<ComponentProps, keyof SelectedProps>>(
-  props: Exact<RestProps, Omit<ComponentProps, keyof SelectedProps>>
-) => JSX.Element
+): (props: ExtraProps & Omit<ComponentProps, keyof SelectedProps>) => JSX.Element
 
 export function withDefinedContextSelector<
   ContextValue,
   SelectedProps extends Record<string, unknown>,
+  ExtraProps extends Record<string, unknown>,
   ComponentProps extends SelectedProps
 >(
   context: readonly React.Context<ContextValue>[],
-  selector: (...contextValues: NonNullable<ContextValue>[]) => SelectedProps,
+  selector: (
+    extra: ExtraProps
+  ) => (...contextValues: NonNullable<ContextValue>[]) => SelectedProps,
   Component: React.ComponentType<ComponentProps>
 ) {
-  return withContextSelector(
+  return withContextSelector<
+    readonly React.Context<ContextValue>[],
+    SelectedProps,
+    ExtraProps,
+    ComponentProps
+  >(
     context,
-    (...contextValues) =>
-      selector(
-        ...contextValues.map((val, idx) =>
-          isDefined(val)
-            ? val
-            : (() => {
-                throw new UndefinedContextError(
-                  `Undefined context: ${[context].flat()[idx]?.displayName}`
-                )
-              })()
-        )
-      ),
+    (extra) =>
+      (...contextValues) =>
+        selector(extra)(
+          ...contextValues.map((val, idx) =>
+            isDefined(val)
+              ? val
+              : (() => {
+                  throw new UndefinedContextError(
+                    `Undefined context: ${[context].flat()[idx]?.displayName}`
+                  )
+                })()
+          )
+        ),
     Component
   )
 }
 
 export class UndefinedContextError extends Error {}
-
-type Exact<T, I> = T extends I ? (I extends T ? T : never) : never
 
 type ContextValues<T> = T extends readonly [React.Context<infer First>, ...infer Rest]
   ? [First, ...ContextValues<Rest>]

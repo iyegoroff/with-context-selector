@@ -33,7 +33,8 @@ FooContext.displayName = 'FooContext'
 const ConnectedFoo = withContextSelector(
   FooContext,
   // FooContext triggers Foo rerender only when x prop is updated
-  ({ x, y }) => ({ x }),
+  () =>
+    ({ x, y }) => ({ x }),
   function Foo({ x, z }: { x: number; z: number }) {
     return <div>{x + z}</div>
   }
@@ -59,7 +60,7 @@ const BarContext = React.createContext(bar)
 
 const ConnectedFooBar = withContextSelector(
   [FooContext, BarContext],
-  (foo, bar) => ({ foo: foo.x, bar }),
+  () => (foo, bar) => ({ foo: foo.x, bar }),
   function FooBar({ foo, bar }: { foo: number, bar: string }) {
     return <div>{String(foo) + bar}</div>
   }
@@ -70,6 +71,36 @@ const App = (
     <BarContnext.Provider value={bar}>
       <ConnectedFooBar />
     </BarContnext.Provider
+  </FooContext.Provider>
+)
+```
+
+Passing props to selector:
+
+```ts
+import { withContextSelector } from 'with-context-selector'
+
+const foo = { x: 1, y: 2 }
+const FooContext = React.createContext(foo)
+
+const ConnectedFoo = withContextSelector(
+  FooContext,
+  // Extra props for selector and resulting component
+  ({ select }: { select: 'x' | 'y' }) =>
+    (props) => ({ x_or_y: props[select] }),
+  function Foo({ x_or_y, z }: { x_or_y: number; z: number }) {
+    return <div>{x_or_y + z}</div>
+  }
+)
+
+// ConnectedFoo requires only z prop, x prop is provided by context
+const App = (
+  <FooContext.Provider value={foo}>
+    {/* will render: 4 */}
+    <ConnectedFoo select={'x'} z={3} />
+
+    {/* will render: 5 */}
+    <ConnectedFoo select={'y'} z={3} />
   </FooContext.Provider>
 )
 ```
